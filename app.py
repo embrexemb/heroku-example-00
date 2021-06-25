@@ -1,34 +1,54 @@
-from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, jsonify, render_template
+from dotenv import load_dotenv
 from os import environ
+from flask_sqlalchemy import SQLAlchemy
+from flask_pymongo import PyMongo
 
+load_dotenv()
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URI')
-#app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URI','sqlite:///notepad.sqlite')
+app.config['MONGO_URI'] = environ.get('MONGODB_URI')
 
+# database setup
 db = SQLAlchemy(app)
+mongo = PyMongo(app)
 
-class Task(db.Model):
+class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String)
+    content = db.Column(db.String)
 
 @app.route('/')
 def index():
-    return 'Hi Team - our first API on Heroku worked!!!!'
+    return render_template("index.html")
 
-@app.route('/api/tasks-postgres')
-def tasksPostGres():
-    tasks = db.session.query(Task)
+@app.route('/api/notes/postgres')
+def note_postgres():
+    notes = db.session.query(Note)
     data = []
 
-    for task in tasks:
-        item = {
-            'id':task_id,
-            'description':task.description
-        }
-        data.append(item)
+    for note in notes:
+        data.append({
+            "id": note.id,
+            "content": note.content
+        })
+
     return jsonify(data)
+
+
+@app.route('/api/notes/mongo')
+def note_mongo():
+    notes = mongo.db.notes.find()
+    data = []
+
+    for note in notes:
+        data.append({
+            '_id': str(note['_id']),
+            'content': note['content']
+        })
+
+    return jsonify(data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
