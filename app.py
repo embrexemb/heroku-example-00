@@ -4,7 +4,7 @@ from os import environ
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL','sqlite:///notepad.sqlite')
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URI')
 
 db = SQLAlchemy(app)
 
